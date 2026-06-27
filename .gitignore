@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+airflow_venv/
+
+# Airflow
+logs/
+airflow.db
+
+# Environment Variables
+.env
+
+# Credentials
+keys/
+*.json
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
