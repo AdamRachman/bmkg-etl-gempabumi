@@ -2,300 +2,148 @@
 
 ## Overview
 
-Project ini merupakan implementasi end-to-end ETL (Extract, Transform, Load) Pipeline menggunakan data gempa bumi real-time milik BMKG (Badan Meteorologi, Klimatologi, dan Geofisika). Pipeline dibangun untuk mensimulasikan workflow Data Engineering modern, dimulai dari proses multi-source data ingestion berbasis XML, transformasi dan normalisasi data, orchestration menggunakan Apache Airflow, hingga penyimpanan data ke PostgreSQL dan Google BigQuery.
+BMKG Earthquake ETL Pipeline merupakan mini project Data Engineering yang mensimulasikan proses **end-to-end ETL (Extract, Transform, Load)** menggunakan data gempa bumi real-time dari **BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)**.
 
-Project ini awalnya dibangun menggunakan local environment dengan PostgreSQL sebagai relational database, kemudian dikembangkan menjadi hybrid cloud architecture dengan integrasi Google BigQuery sebagai analytical data warehouse.
+Pipeline melakukan ekstraksi data dari dua endpoint XML BMKG, melakukan transformasi dan normalisasi data, kemudian memuat hasilnya ke **PostgreSQL** sebagai operational database dan **Google BigQuery** sebagai cloud analytical data warehouse. Seluruh workflow diorkestrasi menggunakan **Apache Airflow** untuk mendukung automation dan scheduling.
 
-Tujuan utama project ini adalah memperkuat pemahaman dan implementasi practical terkait:
-
-* ETL Pipeline Development
-* Data Transformation & Normalization
-* Workflow Orchestration
-* Relational & Analytical Database
-* Hybrid Cloud Data Architecture
-* Google Cloud Platform Ecosystem
-* Data Warehouse Integration
+Project ini awalnya dikembangkan menggunakan local environment dengan PostgreSQL, kemudian di-upgrade menjadi **Hybrid Cloud Architecture** melalui integrasi Google BigQuery untuk mensimulasikan workflow Data Engineering pada ekosistem Google Cloud Platform (GCP).
 
 ---
 
-# Architecture
+## Key Features
 
-```text
-BMKG XML API Sources
-        ↓
-    Extract Layer
-        ↓
- Transform & Normalization
-        ↓
- ┌─────────────────────┐
- │                     │
- ↓                     ↓
-PostgreSQL         BigQuery
-(Operational DB)   (Analytical Warehouse)
-        ↓
- Apache Airflow Orchestration
-```
+- Multi-source XML data ingestion
+- Schema normalization
+- Data cleaning & transformation
+- Incremental loading
+- Deduplication logic
+- Apache Airflow orchestration
+- PostgreSQL integration
+- Google BigQuery integration
+- Hybrid cloud architecture
+- IAM Service Account authentication
 
 ---
 
-# Data Source
+## Tech Stack
 
-Project ini menggunakan dua endpoint XML milik BMKG:
-
-## 1. gempadirasakan.xml
-
-Berisi data gempa bumi yang dirasakan oleh masyarakat.
-
-Source:
-https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.xml
-
-## 2. gempaterkini.xml
-
-Berisi data gempa bumi terbaru dengan magnitude ≥ 5.0.
-
-Source:
-https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.xml
+| Category | Technology |
+|----------|------------|
+| Programming Language | Python |
+| Workflow Orchestration | Apache Airflow |
+| Relational Database | PostgreSQL |
+| Cloud Data Warehouse | Google BigQuery |
+| Data Processing | Pandas |
+| XML Parsing | ElementTree |
+| Cloud Platform | Google Cloud Platform |
+| Authentication | IAM Service Account |
+| Database Utilities | SQLAlchemy, psycopg2 |
 
 ---
 
-# Key Features
+# Project Architecture
 
-## Multi-Source Data Ingestion
+Pipeline terdiri dari empat layer utama yaitu **Data Source**, **Extract**, **Transform**, dan **Load**. Data diekstraksi dari dua endpoint XML BMKG, dinormalisasi menjadi satu schema, kemudian dimuat ke PostgreSQL maupun Google BigQuery. Seluruh workflow dijalankan menggunakan Apache Airflow melalui konsep **Directed Acyclic Graph (DAG)** sehingga proses ETL dapat dijalankan secara otomatis berdasarkan jadwal tertentu.
 
-Pipeline melakukan ingestion data dari beberapa endpoint XML BMKG dan menggabungkannya ke dalam satu workflow ETL.
-
-## Schema Normalization
-
-Struktur data dari beberapa source dinormalisasi ke dalam satu schema agar lebih konsisten dan meminimalisir NULL value yang tidak diperlukan.
-
-## Deduplication Logic
-
-Pipeline memiliki mekanisme deduplication untuk mencegah data duplikat masuk ke database.
-
-Validasi dilakukan menggunakan kombinasi:
-
-* datetime_utc
-* koordinat
-
-Pendekatan ini membuat pipeline memiliki konsep incremental loading.
-
-## Hybrid Database Architecture
-
-Project ini menggunakan dua jenis database untuk mensimulasikan arsitektur Data Engineering modern.
-
-### PostgreSQL
-
-Digunakan sebagai:
-
-* Relational Database lokal
-* Operational / transactional storage
-* Environment development ETL
-
-### BigQuery
-
-Digunakan sebagai:
-
-* Cloud analytical data warehouse
-* Simulasi analytical workload
-* Integrasi ecosystem GCP
-
-## Apache Airflow Orchestration
-
-Apache Airflow digunakan untuk automation, orchestration, scheduling, dan monitoring ETL Pipeline menggunakan konsep DAG.
-
-## Google Cloud Platform Integration
-
-Project telah terintegrasi dengan beberapa layanan GCP seperti:
-
-* BigQuery
-* IAM Service Account
-* Cloud-based analytical workflow
+![Project Architecture](./screenshots/architecture.png)
 
 ---
 
-# Tech Stack
+# ETL Workflow
 
-| Category               | Technologies                |
-| ---------------------- | --------------------------- |
-| Programming Language   | Python                      |
-| Workflow Orchestration | Apache Airflow              |
-| Relational Database    | PostgreSQL                  |
-| Cloud Data Warehouse   | Google BigQuery             |
-| Data Processing        | Pandas                      |
-| XML Parsing            | ElementTree                 |
-| Cloud Platform         | Google Cloud Platform (GCP) |
-| Authentication         | IAM Service Account         |
-| ETL Utilities          | SQLAlchemy, psycopg2        |
+Workflow ETL dibangun menggunakan Apache Airflow untuk mengotomatisasi setiap tahapan pipeline.
 
----
+Tahapan yang dilakukan meliputi:
 
-# Database Schema
+1. Extract data dari dua endpoint XML BMKG
+2. Transform & schema normalization
+3. Data cleaning
+4. Deduplication (incremental loading)
+5. Load ke PostgreSQL atau Google BigQuery
+6. Validasi hasil loading
 
-| Column Name  | Description            |
-| ------------ | ---------------------- |
-| tanggal      | Tanggal gempa          |
-| jam          | Waktu gempa            |
-| datetime_utc | Timestamp UTC          |
-| koordinat    | Titik koordinat        |
-| lintang      | Representasi latitude  |
-| bujur        | Representasi longitude |
-| magnitude    | Magnitude gempa        |
-| kedalaman_km | Kedalaman gempa        |
-| wilayah      | Lokasi / wilayah gempa |
-| skala_gempa  | Kategori skala gempa   |
-| source_data  | Identifier source data |
-| created_at   | Timestamp insert ETL   |
+### Apache Airflow DAG
+
+![Apache Airflow DAG](./screenshots/airflow_dag.png)
 
 ---
 
-# Transformation Process
+# Data Storage
 
-Layer transformasi melakukan beberapa proses penting:
+## PostgreSQL
 
-## Standardization
+PostgreSQL digunakan sebagai **operational database** pada local environment untuk menyimpan data hasil ETL dan mensimulasikan kebutuhan transactional workload.
 
-Perbedaan struktur XML dari masing-masing source dinormalisasi menjadi satu format schema.
+### Table Preview
 
-## Data Type Conversion
+![PostgreSQL Table](./screenshots/postgres-table-preview.png)
 
-* Konversi datetime
-* Konversi numeric magnitude
-* Konversi numeric kedalaman
+### Stored Data
 
-## Data Cleaning
-
-* Pembersihan format depth
-* Handling invalid values
-* Duplicate removal
-
-## Derived Columns
-
-### skala_gempa
-
-Dibuat berdasarkan nilai magnitude.
-
-| Magnitude | Category |
-| --------- | -------- |
-| < 4       | Lemah    |
-| 4 - <5    | Ringan   |
-| 5 - <6    | Sedang   |
-| ≥ 6       | Kuat     |
-
-### source_data
-
-Digunakan untuk mengidentifikasi source asal data BMKG.
+![PostgreSQL Data](./screenshots/postgres-data-preview.png)
 
 ---
 
-# Airflow Orchestration
+## Google BigQuery
 
-Workflow ETL diorkestrasi menggunakan Apache Airflow.
+Google BigQuery digunakan sebagai **cloud analytical data warehouse** untuk mensimulasikan analytical workload yang scalable serta integrasi dengan ekosistem Google Cloud Platform.
 
-## Workflow Stages
+### Table Preview
 
-1. Extract data dari BMKG XML API
-2. Transformasi & normalisasi data
-3. Validasi dan deduplication
-4. Load ke PostgreSQL atau BigQuery
-5. Validasi final row count
+![BigQuery Table](./screenshots/bmkg-table-preview.png)
 
-## Scheduling
+### Query Result
 
-DAG dapat dijalankan secara otomatis menggunakan Airflow Scheduler.
+![BigQuery Data](./screenshots/bigquery-data-preview.png)
 
 ---
 
-# BigQuery Integration
+# ETL Execution
 
-Project ini dikembangkan menjadi hybrid cloud implementation dengan integrasi Google BigQuery.
+Pipeline menghasilkan logging pada setiap tahapan proses ETL mulai dari extraction, transformation, deduplication, hingga proses loading dan validasi jumlah data.
 
-## Mengapa BigQuery?
-
-BigQuery digunakan untuk mensimulasikan cloud-native analytical workflow karena memiliki:
-
-* Serverless architecture
-* High scalability
-* Fast analytical query processing
-* Native integration dengan ecosystem GCP
-
-## Authentication
-
-Authentication dilakukan menggunakan IAM Service Account milik GCP.
-
----
-
-# Project Structure
-
-```text
-bmkg-etl-gempabumi/
-│
-├── dags/
-│   ├── bmkg_postgres_etl_dag.py
-│   └── bmkg_bigquery_etl_dag.py
-│
-├── scripts/
-│   ├── extract.py
-│   ├── transform.py
-│   ├── load_postgres.py
-│   ├── load_bigquery.py
-│   ├── main_postgres.py
-│   └── main_bigquery.py
-│
-├── screenshots/
-│
-├── README.md
-├── requirements.txt
-└── .gitignore
-```
-
----
-
-# Future Improvements
-
-Beberapa pengembangan yang direncanakan:
-
-* Migrasi orchestration ke Cloud Composer
-* Docker containerization
-* Data quality validation layer
-* Dashboard & reporting integration
-* Cloud Storage raw layer
-* CI/CD automation
+![ETL Logs](./screenshots/etl_logs.png)
 
 ---
 
 # Learning Outcomes
 
-Melalui project ini, beberapa konsep Data Engineering berhasil dipelajari dan diimplementasikan:
+Melalui project ini, beberapa konsep Data Engineering berhasil dipelajari dan diimplementasikan, antara lain:
 
-* ETL Pipeline Development
-* Workflow Orchestration
-* Data Normalization
-* Incremental Loading
-* Deduplication Strategy
-* Relational vs Analytical Database
-* Hybrid Cloud Architecture
-* BigQuery Integration
-* IAM Authentication
-* Airflow Scheduling
+- End-to-End ETL Pipeline Development
+- Multi-source Data Ingestion
+- XML Data Processing
+- Data Cleaning & Transformation
+- Schema Normalization
+- Incremental Loading
+- Deduplication Strategy
+- Apache Airflow Orchestration
+- PostgreSQL Integration
+- Google BigQuery Integration
+- Hybrid Cloud Architecture
+- IAM Service Account Authentication
+- Workflow Automation & Scheduling
 
 ---
 
-# Screenshots
+# Future Improvements
 
-![Architecture](./screenshots/architecture.png)
-![Airflow DAG UI](./screenshots/airflow_dag.png)
-![BigQuery Table Preview](./screenshots/bmkg-table-preview.png)
-![BigQuery Data Results](./screenshots/bigquery-data-preview.png)
-![PostgreSQL Table Contents](./screenshots/postgres-table-preview.png)![PostgreSQL Data Contents](./screenshots/postgres-table-preview.png)
-![ETL Logs](./screenshots/etl_logs.png)
+Beberapa pengembangan yang direncanakan untuk project ini:
+
+- Migrasi orchestration ke Google Cloud Composer
+- Cloud Storage sebagai raw data layer
+- Data quality validation layer
+- Dashboard & reporting menggunakan Looker Studio
+- CI/CD pipeline untuk deployment otomatis
 
 ---
 
 # Author
 
-Muhammad Adam Rachman
+**Muhammad Adam Rachman**
 
-Information Systems Graduate dengan minat kuat di bidang Data Engineering, ETL Pipeline Development, SQL, Python, Cloud Data Architecture, dan Workflow Orchestration.
+Information Systems Graduate dengan minat pada bidang **Data Engineering**, ETL Pipeline Development, SQL, Python, Workflow Orchestration, Cloud Data Platform, dan Data Warehouse.
 
-LinkedIn:
-http://www.linkedin.com/in/adamrchmn
+**LinkedIn**
+
+https://www.linkedin.com/in/adamrchmn
