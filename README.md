@@ -8,6 +8,11 @@ Pipeline melakukan ekstraksi data dari dua endpoint XML BMKG, melakukan transfor
 
 Project ini awalnya dikembangkan menggunakan local environment dengan PostgreSQL, kemudian di-upgrade menjadi **Hybrid Cloud Architecture** melalui integrasi Google BigQuery untuk mensimulasikan workflow Data Engineering pada ekosistem Google Cloud Platform (GCP).
 
+**Data Gempabumi diambil dari portal resmi BMKG (Badan Meteorologi, Klimatologi, dan Geofisika).**
+
+Sumber data: 
+https://data.bmkg.go.id/gempabumi
+
 ---
 
 ## Key Features
